@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elden Ring Text Explorer</title>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            font-family: Helvetica, Arial, Sans-Serif;
+        }
+
+        #page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #search_bar {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid lightgray;
+            background-color: #f8f1ea;
+            justify-content: space-between;
+        }
+
+        #search_bar>* {
+            margin-left: 10px;
+        }
+
+        #filter_result_count {
+            background-color: rgb(216, 97, 97);
+            border: 2px solid rgb(124, 36, 36);
+            border-radius: 2px;
+            padding: 3px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1;
+            margin-right: 5px;
+            display: none;
+        }
+
+        #filter_result_clear {
+            cursor: pointer;
+            display: inline-block;
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+
+        #filter_result_clear:hover {
+            color: red;
+        }
+
+        #search_box {
+            height: 30px;
+            border: 1px solid #28241d;
+            border-radius: 3px;
+            flex-grow: 2;
+            font-size: 16px;
+            padding-left: 5px;
+            padding-right: 50px;
+        }
+
+        #search_box:focus {
+            filter: drop-shadow(0px 0px 5px #d9b87a);
+        }
+
+        #search_bar button {
+            height: 30px;
+            border-radius: 3px;
+            margin: 5px;
+            background-color: #ede2cc;
+            border: 1px solid #28241d;
+            padding: 6px;
+            size: 16px;
+            /* font-weight: bold; */
+            filter: drop-shadow(1px 1px 0.5px black);
+            font-weight: bold;
+        }
+
+        #search_bar button:hover {
+            background-color: #a38449;
+            cursor: pointer;
+        }
+
+        #search_bar button:active {
+            filter: none;
+            background-color: #373126;
+        }
+
+        #content {
+            height: calc(100% - 55px);
+            display: flex;
+            flex-direction: row;
+        }
+
+        #side_bar {
+            border-right: 2px solid lightgrey;
+            height: 100%;
+            overflow: scroll;
+            width: 300px;
+            max-width: 30%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #items {
+            /* width: calc(100% - 300px); */
+            overflow: scroll;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        #loading_placeholder {
+            margin: auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+                        
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #jump_section {
+            width: 100%;
+            height: 300px;
+            border-bottom: 2px solid lightgrey;
+        }
+
+        #section_header {
+            height: 32px;
+            font-size: 16px;
+            border-bottom: 1px dotted lightgrey;
+            line-height: 32px;
+            padding-left: 10px;
+            font-weight: bold;
+        }
+
+        #save_filters > #section_header {
+            height: 36px;
+            line-height: 36px;
+        }
+
+        #save_filters {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 2px solid lightgrey;
+        }
+
+        #saved_filters {
+            max-height: 150px;
+            overflow: scroll;
+        }
+
+        .saved_filter {
+            border-bottom: 1px solid lightgrey;
+            
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 5px;
+        }
+
+        .saved_filter_term {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .saved_filter:hover {
+            background-color: #FFFFBB;
+        }
+        
+        .saved_filter_delete {
+            cursor: pointer;
+            user-select: none;
+            background-color: lightgrey;
+            border-radius: 4px;
+            width: 16px;
+            height: 16px;
+            border: 1px solid grey;
+            text-align:center;
+            line-height: 16px;
+            margin-right: 10px;
+        }
+
+        .saved_filter_delete:hover {
+            /* background-color: grey; */
+            color: red;
+            border: 1px solid red;
+        }
+
+        #save_current_filter_button {
+            margin-bottom: 20px;
+            width: fit-content;
+            align-self: center;
+        }
+
+        #jump_table {
+            overflow: scroll;
+            height: calc(100% - 32px);
+        }
+
+        .jump_label {
+            /* display: inline-block; */
+            padding: 7px;
+            border-bottom: 1px solid lightgrey;
+            height: 16px;
+            line-height: 16px;
+            cursor: pointer;
+            user-select:none;
+        }
+        
+        #help {
+            width: 100%;
+            height: fit-content;
+            border-bottom: 2px solid lightgrey;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intro_header {
+            padding-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+        }
+
+        .intro_body {
+            padding: 8px;
+        }
+
+        #show_help {
+            align-self: center;
+            width: 50px;
+            display: block;
+            margin-bottom: 10px;
+            /* width: 100%; */
+        }
+        
+
+        #side_bar_footer {
+            margin-top: auto;
+            width: 100%;
+        }
+
+        #side_bar_footer>* {
+            margin: 5px;
+        }
+
+        
+        .item_group {
+            padding: 10px;
+            width: fit-content;
+        }
+        .item_group_label {
+            font-size: 25px;
+            font-weight: bold;
+            width: fit-content;
+        }
+        .item_content {
+            padding-top: 10px;
+            width: calc(90% + 20px);
+            padding: 10px;
+        }
+
+        .item_content_child {
+            padding-left: 40px;
+        }
+
+        .item_content_name {
+            padding-bottom: 5px;
+        }
+
+        .item_content_jp {
+            padding-top: 10px;
+            margin-left: 1px solid black;
+            display: none;
+        }
+
+        .item_content_name {
+            font-weight: bold;
+            font-size: large;
+        }
+        /* .item_content_info 
+        .item_content_caption
+        .item_content_effect
+        .item_content_dialog */
+
+        .copy_link {
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 3px;
+            user-select:none;
+        }
+        .copy_link:active {
+            cursor: pointer;
+            background-color: lightgrey;
+        }
+
+        .collapse_expand {
+            cursor: pointer;
+            user-select:none;
+        }
+
+        #help_popup {
+            position: absolute;
+            display: none;
+            width: 100%;
+            height: 100%;
+            
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        #help_popup > div {
+            background-color: #f8f1ea;
+            border: 4px solid grey;
+            border-radius: 10px;
+            width: 800px;
+            min-height: 500px;
+            max-width: 90%;
+            
+            padding: 20px;
+            
+            filter: drop-shadow(5px 5px 5px black);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #help_popup > div > div {
+            margin-top: 10px;
+            
+        }
+
+        #close_help {
+            margin-top: auto;
+            display: block;
+            align-self: center;
+            width: 80px;
+            font-size: 16px;
+        }
+
+        .add_tag_input {
+            border: 0px solid black;
+            border-bottom: 1px solid grey;
+            height: 18px;
+            width: 100px;
+            margin: 5px;
+        }
+        
+        .add_tag_button {
+
+        }
+
+        .item_tag {
+            background-color: rgb(186, 232, 234);
+            border: 1px solid rgb(12, 23, 51);
+            font-weight: normal;
+            font-size: 12px;
+            padding: 3px;
+            margin: 4px;
+            line-break: normal;
+            cursor: pointer;
+            user-select: none;
+            padding: 2px;
+            padding-left: 3px;
+            padding-right: 5px;
+
+            color: black;
+
+            border-radius: 10% 16px 16px 10%;
+        }
+
+        .item_tag:hover {
+            filter: drop-shadow(1px 1px 0.5px black);
+        }
+
+        .item_tag_name {
+
+        }
+
+        .item_tag_delete {
+            margin-left: 5px;
+        }
+        .item_tag_delete:hover {
+            color: red;
+        }
+
+        #saved_tags {
+            width: 100%;
+            line-break: anywhere;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+    </style>
+
+    <script defer type="module">
+
+        function getPersistedStateFull() {
+            if (!localStorage.getItem("elden_ring_lore_state")) setAllPersistedValues({});
+            const state = JSON.parse(localStorage.getItem("elden_ring_lore_state"));
+            return state;
+        };
+
+        function setAllPersistedValues(data) {
+            localStorage.setItem("elden_ring_lore_state", typeof data === "string" ? data : JSON.stringify(data));
+        }
+
+        function setPersistedValue(key, value) {
+            const state = getPersistedStateFull();
+            state[key] = value;
+            setAllPersistedValues(state);
+        };
+        
+        function getPersistedValue(key) {
+            const state = getPersistedStateFull();
+            return state[key];
+        };
+
+        const rsp = await fetch('./elden_ring_text.json');
+        const data = await rsp.json();
+
+        function mkElem(type, classs, id, content) {
+            const elem = document.createElement(type);
+            if (!Array.isArray(classs)) classs = [classs];
+            classs.forEach(c => elem.classList.add(c));
+            if (id) elem.id = id;
+            if (content) elem.innerHTML = content;
+            return elem;
+        }
+
+        let focusedNode = null;
+        const allItems = [];
+        const allNodes = document.createDocumentFragment();
+        const jumpNodes = document.createDocumentFragment();
+        const existingTags = getPersistedValue("saved_tags") || {}; // { "tag name": ["item one", "item 2", "etc"] }
+        const invertedTags = Object.entries(existingTags).reduce((acc, [tagName, itemList]) => {
+            itemList.forEach(i => {
+                acc[i] = acc[i] || [];
+                acc[i].push(tagName);
+            });
+            return acc;
+        }, {});
+        for(let [group, items] of Object.entries(data)) {
+            const groupElem = mkElem("div", "item_group", group);
+            groupElem.appendChild(mkElem("div", "item_group_label", null, `<span class="collapse_expand">▼</span><span class="copy_link">🔗</span> ${group}`));
+            const itemsGroup = mkElem("div", "item_content_group");
+            groupElem.appendChild(itemsGroup);
+            jumpNodes.appendChild(mkElem("div", "jump_label", "jump_label_" + group, group));
+            
+            for (let [id, item] of Object.entries(items)) {
+                const tags = (invertedTags[group + id] || []).map(getTagElement);
+                const itemElem = mkElem("div", "item_content", group + id);
+                itemElem.addEventListener("click", event => {
+                    if (focusedNode) focusedNode.style.backgroundColor = "";
+                    itemElem.style.backgroundColor = "#FFFFBB";
+                    focusedNode = itemElem;
+                    history.pushState({}, '', "#" + group + id);
+                });
+                const wikiUrl = `https://www.google.com/search?q=site:eldenring.wiki.fextralife.com ${item.name_en}`;
+                const header = mkElem("div", "item_content_name", null, item.name_en ? `
+                    <span class="copy_link">🔗</span>
+                    <a href="${wikiUrl}">wiki</a>
+                    ${item.name_en}
+                    <span class="tag_list"></span>
+                    <span data-item-id=${group+id}>
+                        <input class="add_tag_input" type="text" placeholder="Add Tag"></input>
+                        <button class="add_tag_button">+</button>
+                    </span>` : "");
+                const headerTags = header.querySelector(".tag_list");
+                if (headerTags) tags.forEach(t => headerTags.appendChild(t));
+                itemElem.appendChild(header);
+                itemElem.appendChild(mkElem("div", ["item_content_info", "item_content_child"], null, item.info_en ? item.info_en : ""));
+                itemElem.appendChild(mkElem("div", ["item_content_caption", "item_content_child"], null, item.caption_en ? item.caption_en : ""));
+                itemElem.appendChild(mkElem("div", ["item_content_effect", "item_content_child"], null, item.effect_en ? item.effect_en : ""));
+                itemElem.appendChild(mkElem("div", ["item_content_dialog", "item_content_child"], null, item.dialog_en ? item.dialog_en : ""));
+
+                const jpData = mkElem("div", ["item_content_jp", "item_content_child"]);
+                itemElem.appendChild(jpData);
+                jpData.appendChild(mkElem("div", "item_content_name_jp", null, item.name_jp ?? ""));
+                jpData.appendChild(mkElem("div", "item_content_info_jp", null, item.info_jp ?? ""));
+                jpData.appendChild(mkElem("div", "item_content_caption_jp", null, item.caption_jp ?? ""));
+                jpData.appendChild(mkElem("div", "item_content_effect_jp", null, item.effect_jp ?? ""));
+                jpData.appendChild(mkElem("div", "item_content_dialog_jp", null, item.dialog_jp ?? ""));
+                item.elem = itemElem;
+                allItems.push(item);
+                itemsGroup.appendChild(itemElem);
+                // ["name", "info", "caption", "effect", "dialog"]
+            }
+            allNodes.appendChild(groupElem);
+        }
+        document.querySelector("#items").innerHTML = "";
+        document.querySelector("#items").appendChild(allNodes);
+        document.querySelector("#jump_table").innerHTML = "";
+        document.querySelector("#jump_table").appendChild(jumpNodes);
+
+        function getTagElement(name) {
+            const itemTag = mkElem("span", "item_tag");
+            itemTag.innerHTML = `<span class="item_tag_name">${name}</span><span class="item_tag_delete">✖</span>`;
+            itemTag.addEventListener("click", event => {
+                let item_content = event.target;
+                while (!item_content.classList.contains("item_content") && item_content.parentElement.id != "saved_tags") item_content = item_content.parentElement;
+                const tag = item_content.querySelector(".item_tag_name").innerHTML;
+                if (item_content.parentElement.id == "saved_tags") {
+                    // tag group clicked
+                    if (event.target.classList.contains("item_tag_delete")) {
+                        // delete the selected tag
+                        [...existingTags[tag]].forEach(t => deleteTag(tag, t));
+                        reloadSavedTags();
+                    } else {
+                        // focus the selected tag
+                        focusTag(tag);
+                    }
+                } else {
+                    // single tag clicked
+                    const id = item_content.id;
+                    if (event.target.classList.contains("item_tag_delete")) {
+                        // delete the selected tag
+                        deleteTag(tag, id);
+                        reloadSavedTags();
+                    } else {
+                        // focus the selected tag
+                        focusTag(tag);
+                    }
+
+                }
+
+            });
+            return itemTag;
+        }
+
+        function focusTag(tag) {
+            document.querySelectorAll(".item_content").forEach(i => i.style.display = "none");
+            existingTags[tag].forEach(t => document.querySelector(`#${t}`).style.display = "block");
+            document.querySelector("#filter_result_text").innerHTML = `${existingTags[tag].length} Tagged Results`;
+            document.querySelector("#search_box").value = "";
+            document.querySelector("#filter_result_count").style.display = "block";
+        }
+
+        function deleteTag(group, item) {
+            // remove from persisted
+            existingTags[group] = existingTags[group].filter(i => i != item);
+            if (existingTags[group].length <= 0) {
+                delete existingTags[group];
+            }
+            setPersistedValue("saved_tags", existingTags);
+            const tagList = document.querySelector(`#${item}`).querySelector(".tag_list");
+            const newTagList = [...tagList.childNodes].filter(t => t.querySelector(".item_tag_name").innerHTML != group);
+            tagList.innerHTML = "";
+            newTagList.forEach(t => tagList.appendChild(t));
+        }
+
+        function reloadSavedTags() {
+            const tags = document.querySelector("#saved_tags");
+            tags.innerHTML = "";
+            Object.keys(existingTags).map(getTagElement).forEach(t => tags.appendChild(t));
+        };
+        reloadSavedTags();
+
+        function addTag(event) {
+            const itemId = event.target.parentElement.dataset.itemId;
+            const value = event.target.parentElement.querySelector("input").value;
+            event.target.parentElement.querySelector("input").value = "";
+            existingTags[value] = existingTags[value] || [];
+            if (existingTags[value].filter(x => x == itemId).length > 0) return; // don't tag it twice with the same value
+            existingTags[value].push(itemId);
+            setPersistedValue("saved_tags", existingTags);
+            event.target.parentElement.parentElement.querySelector(".tag_list").appendChild(getTagElement(value));
+            reloadSavedTags();
+            // add tag to left bar
+            // add tag to current item
+            // save tag to disk
+        };
+        
+        document.querySelectorAll(".add_tag_input").forEach(e => e.addEventListener("keydown", k => k.keyCode == 13 ? addTag(k) : []));
+        document.querySelectorAll(".add_tag_button").forEach(e => e.addEventListener("click", addTag));
+              
+
+        if (window.location.hash) {
+            const focused = document.querySelector(window.location.hash);
+            focused.scrollIntoView();
+            if (focused.classList.contains("item_content")) {
+                focused.style.backgroundColor = "#FFFFBB";
+                if (focusedNode) focusedNode.style.backgroundColor = "";
+                focusedNode = focused;
+            }
+            setTimeout(() => setJumpToRegion(window.location.hash.slice(1)), 0.01);
+        }
+
+        const currentlyVisisbleRegion = () => Object.keys(data).find(i => {
+            const rect = document.querySelector(`#${i}`).getBoundingClientRect();
+            return (rect.top <= window.innerHeight) && (rect.bottom >= 0);
+        });
+
+
+        function setJumpToRegion(regionName) {
+            try {
+                document.querySelectorAll(".jump_label").forEach(l => l.style.backgroundColor = "");
+                document.querySelector("#jump_label_" + regionName).style.backgroundColor = "#FFFFBB";
+                document.querySelector("#jump_label_" + regionName).scrollIntoView();
+                
+            } catch(e) {
+                // we're probably still doing setup and a scroll event fired. Doesn't matter
+            }
+        }
+
+        function doSearch() {
+            const isRegex = document.querySelector("#regex_search").checked;
+            let term = document.querySelector("#search_box").value;
+            if (isRegex) term = new RegExp(term, "i");
+            let count = 0;
+            for(let item of allItems) {
+                let anyMatches = false;
+                for (let prop of Object.values(item)) {
+                    if (typeof prop != "string") continue;
+                    if (isRegex ? prop.match(term) : prop.toLowerCase().includes(term.toLowerCase())) {
+                        anyMatches = true;
+                        break;
+                    }
+                }
+                if (anyMatches) count++;
+                item.elem.style.display = anyMatches ? "block" : "none";
+            }
+            document.querySelector("#filter_result_text").innerHTML = `${count} Search Results`;
+            document.querySelector("#filter_result_count").style.display = "block";
+        }
+
+        document.querySelector("#filter_result_clear").addEventListener("click", event => {
+            // clear search box, redo search, demove 
+            document.querySelector("#search_box").value = "";
+            doSearch();
+            document.querySelector("#filter_result_count").style.display = "none";
+        });
+
+        document.querySelectorAll(".copy_link").forEach(e => e.addEventListener("click", (event) => {
+            let idOwner = event.target;
+            while (!idOwner.id && idOwner) idOwner = idOwner.parentElement;
+            const url = `${window.location.origin}/#${idOwner.id}`;
+            navigator.clipboard.writeText(url);
+        }));
+
+        function toggleRegion(regionId) {
+            if (regionOpen(regionId)) {
+                closeRegion(regionId);
+            } else {
+                openRegion(regionId);
+            }
+        }
+
+        function regionOpen(regionId) {
+            return document.querySelector(`#${regionId} .collapse_expand`).innerHTML == "▼";
+        }
+
+        function openRegion(regionId) {
+            const region = document.querySelector(`#${regionId}`);
+            region.querySelector(`.collapse_expand`).innerHTML = "▼";
+            region.querySelector(".item_content_group").style.display = "block";
+            setPersistedValue("region_state_" + regionId, true);
+        }
+        
+        function closeRegion(regionId) {
+            const region = document.querySelector(`#${regionId}`);
+            region.querySelector(`.collapse_expand`).innerHTML = "▲";
+            region.querySelector(".item_content_group").style.display = "none";
+            setPersistedValue("region_state_" + regionId, false);
+        }
+        
+        document.querySelectorAll(".collapse_expand").forEach(e => e.addEventListener("click", (event) => {
+            let idOwner = event.target;
+            while (!idOwner.id && idOwner) idOwner = idOwner.parentElement;
+            toggleRegion(idOwner.id);
+        }));
+
+        document.querySelector("#toggle_all").addEventListener("click", () => {
+            const anyOpen = Object.keys(data).some(regionOpen);
+            if (anyOpen) {
+                // close all
+                Object.keys(data).forEach(closeRegion);
+            } else {
+                // open all
+                Object.keys(data).forEach(openRegion);
+            }
+        });
+
+        
+        document.querySelectorAll(".jump_label").forEach(e => e.addEventListener("click", (event) => {
+             window.location.hash = event.target.innerHTML;
+             setTimeout(() => setJumpToRegion(event.target.innerHTML), 0.01);
+        }));
+
+
+        function updateCurrentRegion() {
+            setJumpToRegion(currentlyVisisbleRegion());
+        }
+
+        document.querySelector("#items").addEventListener("scroll", updateCurrentRegion);
+        window.addEventListener('resize', updateCurrentRegion);
+
+        document.querySelector("#toggle_side_bar").addEventListener("click", () => {
+            const sb = document.querySelector("#side_bar")
+            if (sb.style.display == "none") {
+                sb.style.display = "flex";
+            } else {
+                sb.style.display = "none";
+            }
+            setPersistedValue("side_bar_state", sb.style.display == "flex");
+        });
+        
+        document.querySelector("#search_box").addEventListener("keydown", 
+            k => k.keyCode == 13 ? doSearch() : []);
+        document.querySelector("#do_search_button").addEventListener("click", doSearch);
+
+
+        function toggleHelp() {
+            const helpPopup = document.querySelector("#help_popup");
+            helpPopup.style.display = ["none", ""].includes(helpPopup.style.display) ? "flex" : "none";
+        }
+        document.querySelector("#show_help").addEventListener("click", toggleHelp);
+        document.querySelector("#close_help").addEventListener("click", toggleHelp);
+
+        function setJapaneseVisible(visible) {
+            document.querySelectorAll(".item_content_jp").forEach(i => i.style.display = visible ? "block" : "none");
+        }
+        document.querySelector("#show_japanese").addEventListener("click", event => {
+            setJapaneseVisible(event.target.checked);
+            setPersistedValue("show_japanese", event.target.checked);
+        });
+        
+        document.querySelector("#regex_search").addEventListener("click", event => {
+            setPersistedValue("regex_search", event.target.checked);
+        });
+
+        document.querySelector("#export_button").addEventListener("click", event => {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(getPersistedStateFull(), null, 4)));
+            element.setAttribute('download', "elden_ring_lore_settings.json");
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
+
+        function reloadSavedSearches() {
+            const searchTerms = getPersistedValue("saved_filters") || [];
+            // render the new search term
+            document.querySelector("#saved_filters").innerHTML = "";
+            for (let term of searchTerms) {
+                document.querySelector("#saved_filters").innerHTML += `<div class="saved_filter" data-term="${term.term}" data-regex-filter="${term.regex}">
+                    <span class="saved_filter_term">${term.term}</span><span class="saved_filter_delete" title="remove saved filter">✖</span>
+                </div>`;
+            };
+            document.querySelectorAll(".saved_filter").forEach(e => e.addEventListener("click", event => {
+                let datasetHolder = event.target;
+                while (!datasetHolder.classList.contains("saved_filter")) datasetHolder = datasetHolder.parentElement;
+                const term = datasetHolder.dataset.term;
+                const isRegex = datasetHolder.dataset.regexFilter == "true";
+                if (event.target.classList.contains("saved_filter_delete")) {
+                    // delete
+                    const searchTerms = getPersistedValue("saved_filters") || [];
+                    searchTerms.splice(searchTerms.findIndex(x => x.regex == isRegex && x.term == term), 1);
+                    setPersistedValue("saved_filters", searchTerms);
+                    reloadSavedSearches();
+                } else {
+                    // apply search
+                    document.querySelector("#regex_search").checked = isRegex;
+                    document.querySelector("#search_box").value = term;
+                    doSearch();
+                }
+            }));
+        }
+
+        document.querySelector("#save_current_filter_button").addEventListener("click", event => {
+            // store the new search term
+            const searchTerms = getPersistedValue("saved_filters") || [];
+            searchTerms.push({
+                regex: document.querySelector("#regex_search").checked,
+                term: document.querySelector("#search_box").value,
+            });
+            setPersistedValue("saved_filters", searchTerms);
+            reloadSavedSearches();
+        });
+
+
+        document.querySelector("#import_button").addEventListener("click", event => {
+            document.querySelector("#import_input").addEventListener('change', event => {
+                if (event.target.files.length > 0) {
+                    const reader = new FileReader()
+                    reader.onload = async event => {
+                        const json = JSON.parse(event.target.result);
+                        setAllPersistedValues(json);
+                        location.reload();
+                    }
+                    reader.readAsText(event.target.files[0]);
+                }
+            });
+            document.querySelector("#import_input").click();
+        });
+
+        // load all state from disk, if available
+        if (getPersistedValue("regex_search")) {
+            document.querySelector("#regex_search").checked = true;
+        }
+        if (getPersistedValue("show_japanese")) {
+            document.querySelector("#show_japanese").checked = true;
+            setJapaneseVisible(true);
+        }
+        if (getPersistedValue("side_bar_state") === false) {
+            const sb = document.querySelector("#side_bar").style.display = "none";
+        }
+        for (let regionId of Object.keys(data)) {
+            if (getPersistedValue("region_state_" + regionId) === false) {
+                closeRegion(regionId);
+            }
+        }
+        reloadSavedSearches();
+
+    </script>
+</head>
+
+<body>
+    <div id="page">
+        <div id="help_popup">
+            <div>
+                <div>Elden Ring's lore can be pretty complicated! In fact, it can feel like you're solving a 6 dimensional crossword puzzle just trying to figure out what the final boss was.</div>
+                <div>If you have a theory about what happened, you can use this tool to quickly find and link to evidence.</div>
+                <div>This is just a text dump, and there's obviously plenty of non-textural lore in Elden Ring (like environmental storytelling and item locations), but having a citable text dump still seems useful to me.</div>
+                <div>The lore is broken down into a number of catagories. These categories more-or-less reflect that data as it was extracted from the game. In other words, it's not my fault the "magic" section is empty. It's also not my fault "Arts of War" are called "Gems".</div>
+                <div>The Dialog section in particular required a lot of cleanup, and I may have assigned some dialog to the wrong NPCs. Dialog is typically assigned to the first name an NPC appears under, so Hyetta's dialog is all attached to Irena of Morne. Cut dialog and directions for voice actors are also part of the text dump, and have not been removed.</div>
+                <div>There's a few tools here to make sorting the data easier. You can tag individual lore entries as well as save your searches. Searches can be plaintext or regex based. All searches are case insensitive.</div>
+                <div>All data is persisted to your browser's local storage. If you want to move your saved tags/searches to another computer, use the export and import buttons.</div>
+                <div>Note that this tool has not been localized. Japanese translations are provided in case you'd like to scrutinize translation choices.</div>
+                <div>If you have any questions or want to contribute, please see <a href="https://github.com/tavoe/EldenRingLoreIndex">github</a>. I have no standards and will approve basically any non-malicious PR. I might even approve a malicious PR, if it's funny.</div>
+                <button id="close_help">Close</button>
+            </div>
+        </div>
+        <div id="search_bar">
+            <button title="Toggle Side Bar" id="toggle_side_bar">☰</button>
+            <button title="Collapse/Expand all" id="toggle_all">▲▼</button>
+            <span>
+                <input type="checkbox" id="regex_search">
+                <label for="regex_search">Regex Filter?</label>
+            </span>
+            <input id="search_box" />
+            <div id="filter_result_count"><span id="filter_result_text"></span><span id="filter_result_clear">✖</span></div>
+            <button id="do_search_button">Apply filter</button>
+        </div>
+        <div id="content">
+            <div id="side_bar">
+                <div id="help">
+                    <div class="intro_header">Elden Ring Text Explorer</div>
+                    <div class="intro_body">This is a tool meant to help explore the elden ring text dump available at <a href="https://github.com/AsteriskAmpersand/Carian-Archive">Carian Archive</a>.</div>
+                    <button id="show_help">Help!</button>
+                </div>
+                <div id="jump_section"><div id="section_header">Jump To Section</div><div id="jump_table"></div></div>
+                <div id="save_filters">
+                    <div id="section_header">Saved Filters <button id="save_current_filter_button">Save Current Filter</button></div>
+                    <div id="saved_filters"></div>
+                </div>
+                <div id="save_filters">
+                    <div id="section_header">Tags</div>
+            <div id="saved_tags"></div>
+                </div>
+                <div id="side_bar_footer">
+                    <div>
+                        <input type="checkbox" id="show_japanese">
+                        <label for="show_japanese">Show Japanese?</label>
+                    </div>
+                    <div>
+                        <input id="import_input" type="file" style="display: none" />
+                        <button id="export_button">Export Settings</button>
+                        <button id="import_button">Import Settings</button>
+                    </div>
+                    <div>
+                        <a href="./elden_ring_text.json">Download Raw Data</a>
+                    </div>
+                </div>
+            </div>
+            <div id="items">
+
+                <div id="loading_placeholder"><div>Loading (should take 2-5 seconds)...</div></div>
+
+                <!-- 1. ids so I can link to lore items
+                8. tag lore entries
+                6. twizzle open categories
+                7. on json load, jump to current id -->
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

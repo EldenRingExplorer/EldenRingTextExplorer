@@ -1,0 +1,17 @@
+{
+  "name": "eldenringtextexplorer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "generate": "node ./src/main.js",
+    "serve": "npx http-server ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "xml2js": "^0.4.23"
+  }
+}
