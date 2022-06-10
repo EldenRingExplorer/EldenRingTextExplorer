@@ -652,7 +652,7 @@
             let idOwner = event.target;
             while (!idOwner.id && idOwner) idOwner = idOwner.parentElement;
 
-            const url = `${window.location.href.split("#")[0]}/#${idOwner.id}`;
+            const url = `${window.location.href.split("#")[0]}#${idOwner.id}`;
             navigator.clipboard.writeText(url);
         }));
 
