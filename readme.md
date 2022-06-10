@@ -2,6 +2,8 @@
 
 # Elden Ring Text Explorer
 
+Site here - [https://EldenRingExplorer.github.io/EldenRingTextExplorer/](https://eldenringexplorer.github.io/EldenRingTextExplorer/)
+
 This repo contains two things - a tool for parsing the Elden Ring text dump into JSON, and a web interface that makes the JSON easier to explore.
 
 This is based on the text dump found at https://github.com/AsteriskAmpersand/Carian-Archive. I don't know those folks, but they provided a great starting point for this project.
