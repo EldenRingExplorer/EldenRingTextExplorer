@@ -651,7 +651,8 @@
         document.querySelectorAll(".copy_link").forEach(e => e.addEventListener("click", (event) => {
             let idOwner = event.target;
             while (!idOwner.id && idOwner) idOwner = idOwner.parentElement;
-            const url = `${window.location.origin}/#${idOwner.id}`;
+
+            const url = `${window.location.href.split("#")[0]}/#${idOwner.id}`;
             navigator.clipboard.writeText(url);
         }));
 
@@ -845,7 +846,7 @@
                 <div>There's a few tools here to make sorting the data easier. You can tag individual lore entries as well as save your searches. Searches can be plaintext or regex based. All searches are case insensitive.</div>
                 <div>All data is persisted to your browser's local storage. If you want to move your saved tags/searches to another computer, use the export and import buttons.</div>
                 <div>Note that this tool has not been localized. Japanese translations are provided in case you'd like to scrutinize translation choices.</div>
-                <div>If you have any questions or want to contribute, please see <a href="https://github.com/tavoe/EldenRingLoreIndex">github</a>. I have no standards and will approve basically any non-malicious PR. I might even approve a malicious PR, if it's funny.</div>
+                <div>If you have any questions or want to contribute, please see <a href="https://github.com/EldenRingExplorer/EldenRingTextExplorer">github</a>. I have no standards and will approve basically any non-malicious PR. I might even approve a malicious PR, if it's funny.</div>
                 <button id="close_help">Close</button>
             </div>
         </div>
